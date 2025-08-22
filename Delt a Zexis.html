@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>和風デュアルアニメウィキ - オールインワン</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="wuthering waves shoorekeeper.jpg" type="image/png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ===== RESET & GLOBAL ===== */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      margin:0;
+      font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN','游ゴシック Medium',Yu Gothic Medium,'メイリオ',sans-serif;
+      line-height:1.55;
+      min-height:100vh;
+      overflow-x:hidden;
+      color:#fff;
+      background:#000;
+      transition:background 1.2s ease, color 1.2s ease;
+    }
+
+    /* ===== SEKKI INDICATOR ===== */
+    .sekki-indicator{
+      position:fixed;
+      top:6px;
+      right:6px;
+      background:rgba(255,255,255,.12);
+      backdrop-filter:blur(4px);
+      padding:4px 8px;
+      border-radius:20px;
+      font-size:.65rem;
+      letter-spacing:.5px;
+      z-index:9999;
+      user-select:none;
+      box-shadow:0 0 6px rgba(0,0,0,.4);
+    }
+
+    /* ===== BACKGROUND SLIDESHOW ===== */
+    .bg-slideshow{
+      position:fixed;
+      top:0;left:0;
+      width:100%;height:100%;
+      z-index:-2;
+    }
+    .bg-slideshow img{
+      position:absolute;
+      top:0;left:0;
+      width:100%;height:100%;
+      object-fit:cover;
+      opacity:0;
+      transition:opacity 1.2s ease-in-out;
+    }
+    .bg-slideshow img.active{opacity:1}
+
+    /* ===== OVERLAY SAKURA ===== */
+    .overlay{
+      position:fixed;
+      top:0;left:0;
+      width:100%;height:100%;
+      background:linear-gradient(
+        135deg,
+        rgba(0,0,0,.65) 0%,
+        rgba(40,40,40,.45) 50%,
+        rgba(0,0,0,.55) 100%
+      );
+      z-index:-1;
+    }
+
+    /* ===== MAIN PANEL ===== */
+    .wiki-panel{
+      width:100%;
+      max-width:980px;
+      margin:0px auto;
+      background:rgba(20,20,20,.35);
+      backdrop-filter:blur(0px) saturate(120%);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:5px;
+      overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,.3);
+      position:relative;
+      z-index:1;
+    }
+
+    /* ===== HEADER ===== */
+    .wiki-header{
+      padding:18px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.25);
+      position:relative;
+    }
+    .wiki-header h1{
+      font-size:clamp(1.25rem,1rem + 1.2vw,1.8rem);
+      background:linear-gradient(90deg,#fff,#ccc);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .wiki-subtitle{
+      color:rgba(220,220,220,.9);
+      margin-top:6px;
+      font-size:.96rem;
+    }
+    .badge{
+      padding:2px 8px;
+      border-radius:5px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:.6rem;
+      margin-right:4px;
+      color:rgba(255,255,255,.85);
+      white-space:nowrap;
+    }
+
+    /* ===== SEARCH CONTAINER ===== */
+    .search-container {
+      position:absolute;
+      top:18px;
+      right:18px;
+      display:flex;
+      align-items:center;
+    }
+    .search-input {
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:2px;
+      padding:6px 12px;
+      color:#fff;
+      font-size:.85rem;
+      width:0;
+      opacity:0;
+      transition:all .3s ease;
+      outline:none;
+    }
+    .search-input.active {
+      width:200px;
+      opacity:1;
+    }
+    .search-icon {
+      color:rgba(255,255,255,.7);
+      cursor:pointer;
+      margin-left:8px;
+      transition:color .2s ease;
+    }
+    .search-icon:hover {
+      color:#fff;
+    }
+
+    /* ===== TABS ===== */
+    .wiki-tabs{
+      display:flex;
+      gap:2px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      padding:0 12px;
+      overflow-x:auto;
+      background:rgba(0,0,0,.15);
+    }
+    .wiki-tab{
+      padding:12px 14px;
+      cursor:pointer;
+      font-size:.95rem;
+      color:rgba(200,200,200,.7);
+      border-bottom:2px solid transparent;
+      transition:.18s;
+      flex:0 0 auto;
+    }
+    .wiki-tab.active{
+      color:rgba(255,255,255,.95);
+      border-bottom-color:rgba(255,255,255,.4);
+    }
+
+    /* ===== CONTENT ===== */
+    .wiki-content{padding:10px 12px 16px}
+    .wiki-tabpanel{display:none}
+    .wiki-tabpanel.active{display:block;animation:fade .28s ease}
+    @keyframes fade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ===== COLLAPSIBLE SECTIONS ===== */
+    .section{margin:12px 0;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.03)}
+    .section .head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 14px;
+      cursor:pointer;
+      background:rgba(0,0,0,.2);
+    }
+    .section .head h2{font-size:1rem;color:rgba(255,255,255,.9)}
+    .section .body{display:none;padding:12px 14px 16px;color:rgba(230,230,230,.9);font-size:.95rem;background:rgba(0,0,0,.15)}
+    .section .body.open{display:block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .card{border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:12px;background:rgba(0,0,0,.2);color:rgba(255,255,255,.9)}
+    .card img{width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+
+    /* ===== LIGHT NOVEL ===== */
+    .ln-volume{margin-bottom:12px;border:1px solid rgba(255,255,255,.05);border-radius:12px;background:rgba(0,0,0,.15)}
+    .ln-volume-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 14px;
+      cursor:pointer;
+      font-weight:600;
+      color:rgba(255,255,255,.9);
+      background:rgba(255,255,255,.05);
+    }
+    .ln-volume-header:hover{background:rgba(255,255,255,.08)}
+    .ln-volume-body{display:none;padding:0 14px 12px}
+    .ln-volume-body.open{display:block}
+    .ln-chapter-list{list-style:none;padding-left:0}
+    .ln-chapter-list li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer}
+    .ln-chapter-list li:hover{background:rgba(255,255,255,.05);margin:0 -14px;padding-left:14px;padding-right:14px}
+    .ln-chapter-list li:last-child{border-bottom:none}
+    .chapter-content{
+      display:none;
+      margin-top:10px;
+      padding:10px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:8px;
+      background:rgba(0,0,0,.3);
+      white-space:pre-wrap;
+      color:rgba(220,220,220,.95);
+      font-size:.85rem;
+    }
+    .date-badge{font-size:.75rem;color:rgba(200,200,200,.6);margin-left:6px}
+    .source-badge{
+      display:block;
+      margin-top:4px;
+      font-size:.7rem;
+      color:#6cf;
+    }
+
+    /* ===== SEARCH RESULTS ===== */
+    .search-results {
+      display:none;
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%, -50%);
+      width:90%;
+      max-width:800px;
+      max-height:80vh;
+      overflow-y:auto;
+      background:rgba(20,20,20,.95);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:16px;
+      padding:20px;
+      z-index:10000;
+      box-shadow:0 10px 40px rgba(0,0,0,.5);
+    }
+    .search-results.active {
+      display:block;
+      animation:fadeIn .3s ease;
+    }
+    .search-results-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:15px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    .search-results-title {
+      font-size:1.2rem;
+      color:#fff;
+    }
+    .search-results-close {
+      background:none;
+      border:none;
+      color:rgba(255,255,255,.7);
+      font-size:1.5rem;
+      cursor:pointer;
+      transition:color .2s ease;
+    }
+    .search-results-close:hover {
+      color:#fff;
+    }
+    .search-result-item {
+      padding:12px;
+      margin-bottom:10px;
+      background:rgba(255,255,255,.05);
+      border-radius:8px;
+      border-left:3px solid transparent;
+      transition:all .2s ease;
+    }
+    .search-result-item:hover {
+      background:rgba(255,255,255,.08);
+      border-left-color:#6cf;
+    }
+    .search-result-item h3 {
+      font-size:1rem;
+      margin-bottom:5px;
+      color:#fff;
+    }
+    .search-result-item p {
+      font-size:.9rem;
+      color:rgba(220,220,220,.8);
+      margin-bottom:5px;
+    }
+    .search-result-context {
+      font-size:.8rem;
+      color:rgba(200,200,200,.6);
+      margin-top:5px;
+    }
+    .search-result-source {
+      font-size:.75rem;
+      color:#6cf;
+      margin-top:5px;
+    }
+    .search-result-item mark {
+      background-color:rgba(102,204,255,.3);
+      color:inherit;
+      padding:0 2px;
+      border-radius:2px;
+    }
+    .search-no-results {
+      text-align:center;
+      padding:20px;
+      color:rgba(200,200,200,.7);
+    }
+    .search-results-nav {
+      display:flex;
+      justify-content:space-between;
+      margin-top:15px;
+      padding-top:10px;
+      border-top:1px solid rgba(255,255,255,.1);
+    }
+    .search-nav-btn {
+      background:rgba(255,255,255,.1);
+      border:none;
+      border-radius:4px;
+      padding:6px 12px;
+      color:rgba(255,255,255,.8);
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .search-nav-btn:hover:not(:disabled) {
+      background:rgba(255,255,255,.2);
+      color:#fff;
+    }
+    .search-nav-btn:disabled {
+      opacity:.5;
+      cursor:not-allowed;
+    }
+
+    /* Mini Social Bar */
+    .social-mini{
+      position:fixed;
+      bottom:10px;
+      right:10px;
+      display:flex;
+      gap:5px;
+      z-index:1000;
+    }
+    .social-mini-icon{
+      width:25px;
+      height:25px;
+      background:rgba(0,0,0,.5);
+      backdrop-filter:blur(5px);
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      text-decoration:none;
+      font-size:10px;
+      transition:all .2s ease;
+    }
+    .social-mini-icon:hover{
+      background:#fff;
+      color:#000;
+      transform:scale(1.1);
+    }
+
+    /* Overlay untuk hasil pencarian */
+    .search-overlay {
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,.7);
+      z-index:9999;
+    }
+    .search-overlay.active {
+      display:block;
+    }
+
+    /* Search Suggestions Styles */
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 200px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(20, 20, 20, 0.95);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      z-index: 10001;
+      display: none;
+      margin-top: 5px;
+    }
+    .search-suggestion-item {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: #ccc;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .search-suggestion-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .search-suggestion-item mark {
+      background-color: rgba(102,204,255,.3);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    /* Mobile */
+    @media (max-width:768px){
+      .social-mini{
+        bottom:5px;
+        right:5px;
+        gap:3px;
+      }
+      .social-mini-icon{
+        width:20px;
+        height:20px;
+        font-size:8px;
+      }
+      .search-container {
+        position:relative;
+        top:0;
+        right:0;
+        margin-top:10px;
+        justify-content:flex-end;
+      }
+      .search-input.active {
+        width:100%;
+      }
+      .search-results {
+        width:95%;
+        padding:15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sekki Indicator -->
+<div class="sekki-indicator" id="sekkiIndicator">春</div>
+
+<!-- Background Slideshow -->
+<div class="bg-slideshow" id="bgSlideshow"></div>
+<div class="overlay"></div>
+
+<!-- Search Overlay -->
+<div class="search-overlay" id="searchOverlay"></div>
+
+<!-- Search Results -->
+<div class="search-results" id="searchResults">
+  <div class="search-results-header">
+    <h2 class="search-results-title">検索結果</h2>
+    <button class="search-results-close" id="closeSearchResults">&times;</button>
+  </div>
+  <div class="search-results-content" id="searchResultsContent"></div>
+  <div class="search-results-nav">
+    <button class="search-nav-btn" id="prevResult" disabled>前へ</button>
+    <span id="searchResultsCount">0件</span>
+    <button class="search-nav-btn" id="nextResult" disabled>次へ</button>
+  </div>
+</div>
+
+<main class="wiki-panel">
+  <header class="wiki-header">
+    <h1>デュアルアニメウィキ - 和風版</h1>
+    <div class="wiki-subtitle">オタクのための完全日本語仕様</div>
+    <div>
+      <span class="badge">魔王学院の不適合者</span>
+      <span class="badge">ロシデレ</span>
+      <span class="badge">デート・ア・ライブ</span>
+      <span class="badge">タコピーの原罪</span>
+      <span class="badge">聲の形</span>
+      <span class="badge">破滅の王国</span>
+    </div>
+
+    <!-- Search Container -->
+    <div class="search-container">
+      <input type="text" class="search-input" id="searchInput" placeholder="検索...">
+      <div class="search-icon" id="searchToggle">
+        <i class="fas fa-search"></i>
+      </div>
+      <div class="search-suggestions" id="searchSuggestions"></div>
+    </div>
+  </header>
+
+  <nav class="wiki-tabs">
+    <div class="wiki-tab active" data-tab="maou">魔王学院</div>
+    <div class="wiki-tab" data-tab="roshidere">ロシデレ</div>
+    <div class="wiki-tab" data-tab="lightnovel">ライトノベル</div>
+    <div class="wiki-tab" data-tab="misha">ミーシャ</div>
+    <div class="wiki-tab" data-tab="sasha">サーシャ</div>
+    <div class="wiki-tab" data-tab="shizuka">静香</div>
+    <div class="wiki-tab" data-tab="Shōko">硝子</div>
+    <div class="wiki-tab" data-tab="Doroka">ドロカ</div>
+    <div class="wiki-tab" data-tab="militia">ミリティア</div>
+    <div class="wiki-tab" data-tab="gilieriam">涅槃七歩</div>
+    <div class="wiki-tab" data-tab="EgilGroneAngdroa">エギル・グローネ</div>
+  </nav>
+
+  <div class="wiki-content">
+    <!-- ===== Maō Gakuin ===== -->
+<section id="tab-maou" class="wiki-tabpanel active">
+  <div class="section">
+    <div class="head"><h2>完全なあらすじ</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>魔王学院の不適合者</strong>（Maō Gakuin no Futekigōsha）、英語では <strong>The Misfit of Demon King Academy</strong> として知られている本作は、<strong>秋</strong> によって執筆され、<strong>しずまよしのり</strong> によってイラストが描かれた、日本の冒険・ファンタジー・ロマンス系ライトノベルシリーズである。物語は 2017年4月に小説投稿サイト <em>小説家になろう</em> で連載を開始し、その後 <strong>アスキー・メディアワークス</strong> により正式に買い取られ、2018年3月から <em>電撃文庫</em> レーベルで刊行された。</p>
+
+      <p>物語は、史上最強にして伝説の暴虐の魔王 <strong>アノス・ヴォルディゴード</strong> を中心に展開する。終わりのない争いと流血に飽きた彼は、子孫たちに平和を託すため、2000年後の未来に転生することを決意する。</p>
+
+      <p>しかし、彼が目にした現実は失望に満ちていた。彼が築いた世界はその過去を忘れ、子孫である魔族は弱体化し、慢心し、魔法そのものも著しく衰退していた。さらに最悪なことに、彼が善良な英雄であったという伝説は、真実から大きく歪められていた。</p>
+
+      <p>アノスはやがて <em>魔王学院</em> に入学する。そこは転生するとされる魔王を特定し教育するために設立された学園であった。しかし学院の測定器は彼の無限の力を認識できず、誤って彼を「<strong>不適合者</strong>」と烙印してしまう ― 才能のない落ちこぼれの生徒として。</p>
+
+      <p>謎めいて寡黙な <strong>ミーシャ・ネクロン</strong> や、快活で勇敢な双子の姉 <strong>サーシャ・ネクロン</strong> をはじめとする新たな仲間たちと共に、アノスは政治と陰謀に満ちた学院の階級社会を駆け上がっていく。自信に満ち、神々や運命すら打ち破る力を持つ彼は、邪悪な陰謀を暴き、裏切りを明らかにし、かつての宿敵と戦いながら、破壊と混乱をもって世界に夢見た平和をもたらそうとする。</p>
+
+      <p>この物語は圧倒的な戦闘や力を描くだけでなく、アイデンティティ、記憶、遺産、そして真の平和の意味といったテーマをも探求する。本作は、非常に強大な主人公と、視聴者の認識を覆す驚くべき展開によって有名である。</p>
+
+      <p>本シリーズは大きな成功を収め、<strong>かやはるか</strong> による漫画化（全4巻まで）や、<strong>シルバーリンク</strong> 制作による人気アニメ化を果たした。アニメ第1期は2020年に全13話で放送され、第2期は二部構成で制作され、前半は2023年初頭、後半は2024年4月に放送された。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>主要キャラクター</h2><span>+</span></div>
+    <div class="body">
+      <div class="grid">
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Anos+Voldigoad" alt="Anos"><b>アノス・ヴォルディゴード</b><br>転生した伝説の魔王。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Misha+Necron" alt="Misha"><b>ミーシャ・ネクロン</b><br>親切で忠実な建国の魔族の娘。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Sasha+Necron" alt="Sasha"><b>サーシャ・ネクロン</b><br>ミーシャの姉、当初は敵対的。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Lay+Glanzudlii" alt="Lay"><b>レイ・グランズドリィ</b><br>伝説の剣を持つ剣士。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ロシデレ ===== -->
+<section id="tab-roshidere" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>完全なあらすじ</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>時々ボソっとロシア語でデレる隣のアーリャさん</strong> 著者: <strong>SunSunSun</strong> &amp; <strong>ももこ</strong>。元は2020年5月に<em>小説家になろう</em>に投稿された2編の短編小説。</p>
+      <p>ロシア語が堪能な高校生・久世政近は、隣の席の同級生であるアーリャがよくロシア語で彼に囁いていることに気づく…しかし、彼は理解できないふりをしていた。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>主要キャラクター</h2><span>+</span></div>
+    <div class="body">
+      <div class="grid">
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Alya" alt="アーリャ"><b>アリサ・ミハイロヴナ・九条（アーリャ）</b><br>ロシアと日本のハーフで人気者の生徒。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Masachika" alt="政近"><b>久世政近</b><br>ロシア語が分かるが、知らないふりをしている。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Yuki" alt="有希"><b>周防有希</b><br>政近の親友。</div>
+        <div class="card"><img src="https://via.placeholder.com/300x150?text=Maria" alt="マリア"><b>マリア・ミハイロヴナ・九条</b><br>アーリャの姉。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ライトノベル (3日形式) ===== -->
+<section id="tab-lightnovel" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>魔王学院の不適合者 (3日形式)</h2><span>+</span></div>
+    <div class="body"><div id="maou-ln"></div></div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>時々ボソっとロシア語でデレる隣のアーリャさん (3日形式)</h2><span>+</span></div>
+    <div class="body"><div id="roshidere-ln"></div></div>
+  </div>
+</section>
+
+<!-- ===== ミーシャ・ネクロン ===== -->
+<section id="tab-misha" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>ミーシャ・ネクロン</strong>は<em>魔王学院の不適合者</em>のメインヒロインの一人。ネクロン家の双子の妹で、姉は<strong>サーシャ・ネクロン</strong>。遺伝的には純血の魔族だが、ディノ・ジクセスによって創造された経締から混血魔族として扱われている。</p>
+      <ul>
+        <li><strong>ステータス:</strong> 生存</li>
+        <li><strong>出身:</strong> ディルヘイド</li>
+        <li><strong>種族:</strong> 魔族 (デーモン)</li>
+        <li><strong>年齢:</strong> 14歳 (1巻) → 15歳 (1巻以降)</li>
+        <li><strong>性別:</strong> 女性</li>
+        <li><strong>髪の色:</strong> 白</li>
+        <li><strong>瞳の色:</strong> 薄緑</li>
+        <li><strong>別名:</strong> 破滅の魔女の妹、創造の女神 (過去)</li>
+        <li><strong>家族:</strong> アノス・ヴォルディゴード (祖先)、イヴィス・ネクロン (直系祖先)、サーシャ・ネクロン (双子の姉)、アイシャ・ネクロン (サーシャとの融合体)</li>
+        <li><strong>所属:</strong> ネクロン家、魔王学院 (1年2組 → 2年2組)</li>
+        <li><strong>初登場:</strong> 小説1巻 / 漫画1話 / アニメ1話</li>
+        <li><strong>声優:</strong> 楠木ともり (日本語)、ブリアナ・ニッカーバッカー (英語)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>外見</h2><span>+</span></div>
+    <div class="body">
+      <p>前髪の長い短い白髪と、大きな薄緑色の瞳、青白い肌が特徴。サーシャより少し背が高く、体つきもふっくらしている。制服は混血魔族用の白色で、六芒星のバッジ、先端に青いダイヤモンドがついた2本の髪留めリボン、灰色の長いソックス、白いブーツを履いている。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>性格</h2><span>+</span></div>
+    <div class="body">
+      <p>無口で、短い文で話し、特に姉のサーシャと比べてあまり自己主張しない。「魔法人形」のレッテルを貼られたため、他の魔族から避けられ、孤独と孤立を感じていた。15歳の誕生日に消滅する運命を知っており、存在しなくなる前にいくつかの思い出を作りたいと思っている。最初の友人であるアノスとの友情を非常に大切にしており、他人の感情にも気づく。サーシャの行動は逆を示していても、サーシャが本当は自分を嫌っていないことを見抜ける。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>経歴</h2><span>+</span></div>
+    <div class="body">
+      <p>転生した魔王の強力な器を作るため、イヴィス・ネクロンが胎内にいたサーシャにディノ・ジクセスを使い、根源を二つに分裂させた結果、双子の妹として生まれた。根源は永遠に分離したままではいられず、最終的には本来の形に戻る運命だった。本来はサーシャのみが人格を持つはずだったが、ミーシャは魔法によって独自の人格を発達させた。しかし、重要ではなく最終的には消える運命と見なされたため、家族から無視され、別々に育てられた。アノスの助力により運命は変わり、二人の姉妹は真の双子として生き続けることになる。後にミーシャはアルカナに殺された創造女神ミリティアの転生であることが明らかになる。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>膨大な魔力:</strong> 入学試験を受けた他の生徒の約1000倍の魔力容量を持つ。完全な根源を得た後、潜在的な魔法能力が解放され、さらに強化される。</li>
+        <li><strong>知覚の魔眼 (Magic Eyes):</strong> 彼女の眼は平均的な魔眼よりもはるかに知覚力が高く、他人が本当の感情を隠そうとしているときでも、その感情や気持ちを見透かすことができる。</li>
+        <li><strong>創造魔法の達人:</strong> 創造魔法に非常に優れた才能を示し、サーシャに対するグループ対抗試験で3つの魔王城を建設できる。</li>
+        <li><strong>疑似デルスゲイド創造:</strong> 疑似魔王城デルスゲイドを作り出すことで創造魔法を強化でき、本物には及ばないものの、神聖な力を宿す。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>魔法</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>創造の魔眼 (Magic Eyes of Creation)</li>
+        <li>イリス (Iris)</li>
+        <li>シェイド (Schade)</li>
+        <li>ジェ・グラード (Je Grade)</li>
+        <li>ディノ・ジクセス (Dino Jixes)</li>
+        <li>ゼクト (契約創造 / Zect (Contract Creation))</li>
+        <li>フレス (飛行 / Fless (Flight))</li>
+        <li>ガトム (転移 / Gatom (Teleportation))</li>
+        <li>シリカ (転生 / Silica (Reincarnation))</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>装備</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>ロータス・アイスリング - かつてミーシャが着用していた蓮の氷の指輪</li>
+        <li>魔法模型の指輪 - 魔法模型の指輪</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>姓「ネクロン」は、死体や死を意味する接頭辞「necro-」に由来する可能性が高い。</li>
+        <li>名前「ミーシャ」は、スラヴ語の嬰児名「神からの贈り物」に由来するかもしれない。</li>
+        <li>過去の根源と現在の根源を統合して完全な根源を得た後、適性が向上した。</li>
+        <li>趣味はイリスを使って魔法模型を作り、魔法模型店で売ること。</li>
+        <li>ミーシャは猫が好き。</li>
+        <li>ディノ・ジクセスを通してサーシャと融合し、<strong>アイシャ</strong>になることができる。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote>"最初から私は存在していなかった。ただ元の状態に戻るだけ。死ぬわけじゃない、ただ消えるだけ。" — ミーシャ・ネクロンからアノス・ヴォルディゴードへ</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- ===== サーシャ・ネクロン ===== -->
+<section id="tab-sasha" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>サーシャ・ネクロン</strong>は<em>魔王学院の不適合者</em>のメインヒロインの一人。ネクロン家16代目の後継者であり、双子の姉。<em>破滅の魔女</em>の異名を持ち、あらゆるものを破壊する<strong>破滅の魔眼</strong>の能力を持つ。</p>
+      <ul>
+        <li><strong>ステータス:</strong> 生存</li>
+        <li><strong>出身:</strong> ディルヘイド</li>
+        <li><strong>種族:</strong> 魔族 (デーモン)</li>
+        <li><strong>年齢:</strong> 14歳 (1巻) → 15歳 (1巻以降)</li>
+        <li><strong>性別:</strong> 女性</li>
+        <li><strong>髪の色:</strong> 金髪</li>
+        <li><strong>瞳の色:</strong> 青</li>
+        <li><strong>別名:</strong> 破滅の魔女 (Witch of Destruction)</li>
+        <li><strong>家族:</strong> アノス・ヴォルディゴード (祖先)、イヴィス・ネクロン (直系祖先)、ミーシャ・ネクロン (双子の妹)、アイシャ・ネクロン (ミーシャとの融合体)</li>
+        <li><strong>所属:</strong> ネクロン家、魔王学院 (1年2組 → 2年2組、混沌の暴虐組)</li>
+        <li><strong>初登場:</strong> 小説1巻 / 漫画3話 / アニメ2話</li>
+        <li><strong>声優:</strong> 夏吉ゆうこ (日本語)、ケイリー・ミルズ (英語)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>外見</h2><span>+</span></div>
+    <div class="body">
+      <p>黄色のアクセントが入った黒いリボンで結んだ長い金髪のツインテール、青い瞳、小柄でスリムな体つきが特徴。制服は貴族魔族用の黒色で、六芒星のバッジ、赤い結び目のついた黒い長ソックス、ハイヒールのブーツを履いている。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>性格</h2><span>+</span></div>
+    <div class="body">
+      <p>最初は傲慢で高慢であり、自分の家柄の地位から他人を見下すことが多い。しかし、聡明で戦略的なリーダーシップを持ち、部下から信頼されている。ミーシャに対する厳しい態度の裏には、妹を深く愛し、救うために自己犠牲をいとわない気持ちがある。また、ツンデレな性質も持ち、特に後に憧れ、愛するようになるアノス・ヴォルディゴードに対して、素直に気持ちを表現するのが難しい。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>経歴</h2><span>+</span></div>
+    <div class="body">
+      <p>生まれる際、イヴィス・ネクロンの実験対象となり、魔法<strong>ディノ・ジクセス</strong>を使って根源を二つに分裂させられ、結果として双子の妹ミーシャ・ネクロンが生まれた。家族の計画では、15歳の時にミーシャはサーシャと再融合し消滅するはずだった。妹を失いたくないサーシャは、ミーシャと根源を同等にする魔法<strong>ゼクシス</strong>と、ミーシャを「本物」とする<strong>デルト</strong>を創造した。この計画のために、ミーシャが自分自身を拒否できるように、嫌っているふりをしていた。しかし、アノスの助けにより運命は変わり、二人の姉妹は真の双子として生き続けることになる。</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>膨大な魔力:</strong> 混沌の世代の天才と認められ、根源が完全になった後、力が増大した。</li>
+        <li><strong>呪文理論:</strong> <em>ゼクシス</em>や<em>デルト</em>のような新しい魔法を創造できる。</li>
+        <li><strong>破滅魔法の達人:</strong> <em>破滅の魔眼</em>の所有者であり、物質や魔法を破壊でき、かつてアノスしか使えなかった<em>ヴェブズド</em>さえも習得する。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>魔法</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>破滅の魔眼 (Magic Eyes of Destruction)</li>
+        <li>ジオ・グレイズ (Jio Graze)</li>
+        <li>グレスデ (Gresde)</li>
+        <li>ジェ・グラード (Je Grade)</li>
+        <li>ディエン (Dien)</li>
+        <li>ヴェブズド (Vebzud)</li>
+        <li>ディノ・ジクセス (Dino Jixes)</li>
+        <li>デルト (Delt)</li>
+        <li>ゼクシス (Zexis)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>装備</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>フェニックスマントル/ローブ – サーシャがかつて着用した聖なる炎の回復マントル</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>姓「ネクロン」は、イヴィスの生死のテーマに合わせて「necro（死体）」+ nから来ている可能性が高い。</li>
+        <li>サーシャはネクロン家16代目の子孫。</li>
+        <li>現在と過去の根源が融合した後、適性が向上した。</li>
+        <li>早起きが苦手で、お酒に弱い。</li>
+        <li>ディノ・ジクセスを通してミーシャと融合し、<strong>アイシャ</strong>になることができる。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="section">
+    <div class="head"><h2>名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote>"変えてみせる。お前が死ななければならない運命をぶち壊す。" — サーシャからミーシャへ</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 久世しずか ===== -->
+<section id="tab-shizuka" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>久世しずか</strong>は<em>タコピーの原罪</em>のメインヒロイン。いじめ、家庭崩壊、愛玩動物の喪失によるトラウマを抱えながらも、優しい心を持ち、宇宙人タコピーとの絆を築く少女として描かれる。</p>
+      <ul>
+        <li><strong>ステータス:</strong> 生存</li>
+        <li><strong>出身:</strong> 日本</li>
+        <li><strong>種族:</strong> 人間</li>
+        <li><strong>年齢:</strong> 10歳 (小4) → 16歳 (高1)</li>
+        <li><strong>性別:</strong> 女性</li>
+        <li><strong>髪の色:</strong> 黒、セミロング</li>
+        <li><strong>瞳の色:</strong> 黒、二重瞼</li>
+        <li><strong>別名:</strong> 「笑わない少女」</li>
+        <li><strong>家族:</strong> 母 (キャバクラ勤務)、父 (東京在住)、チャッピー (飼い犬)</li>
+        <li><strong>所属:</strong> 地元の小学校・中学校</li>
+        <li><strong>初登場:</strong> アニメ: タコピーの原罪 (2025年)</li>
+        <li><strong>声優:</strong> 上田麗奈 (日本語)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>外見</h2><span>+</span></div>
+    <div class="body">
+      <p>いじめによるあざの跡がある顔、経済状況を反映したボロボロの服装（大きめの白いシャツ、明るい青のズボン、汚れた白いスニーカー）が特徴。通学かばんも壊れており、全体的に汚れて疲れたような外見をしている。しかし、自然な美しさを持ち、タコピーでさえ惹かれるほど。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>性格</h2><span>+</span></div>
+    <div class="body">
+      <p>幼少期のトラウマと過酷な環境から「笑わない少女」として知られる。無気力で無口に見えるが、愛犬チャッピーの前では心からの笑顔を見せる。困難な状況では聡明で適応力があり、生き抜くための戦略を考えるが、チャッピーを失ったことで抑うつ状態や極端な行動に走ることも。恐ろしい経験をしながらも、最終的にはタコピーや身近な人々に対して優しく思いやりのある性質を示す。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>経歴 / タイムライン</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>2016年 (小4):</strong> 多忙な母と二人暮らし、桐坂マリナからのいじめを受ける、タコピーと出会う、チャッピーとの絆を築き始める。</li>
+        <li><strong>チャッピーの失踪:</strong> チャッピーがいなくなる（または死亡）、しずかは深いうつ状態に陥り、タコピーのハッピーリボンを使った自殺企図を含む極端な方法を試み始める。</li>
+        <li><strong>マリナとの対決:</strong> 衝突と暴力の後、タコピーがハッピーカメラで救おうとし、マリナは間接的に死亡する。</li>
+        <li><strong>真相隠蔽:</strong> しずかと東直樹はタコピーのガジェット（メモリーボックス）を使って事件を隠蔽し、新たな現実に適応する。</li>
+        <li><strong>2022年 (高1):</strong> しずかは新たな世界を受け入れ始め、新たなタイムラインでマリナとより良い関係を築き、チャッピーを探し続ける。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>能力 / スキル</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>精神的耐久力: いじめや家庭のトラウマに耐え抜く能力。</li>
+        <li>情緒的な知性: 他人を理解し、社会的相互作用の戦略を調整する能力。</li>
+        <li>適応力: 宇宙人のガジェットを創造的に使い、生き延びる能力。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>ガジェット / 能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>ハッピーリボン – 自殺企図や情緒的な相互作用に使用される道具。</li>
+        <li>ハッピーカメラ – タコピーがしずかを救うために使用した時間逆転装置。</li>
+        <li>メモリーボックス – 物を保存したり、重要な出来事の証拠を「隠す」ためのガジェット。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>装備</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>ボロボロの服 (白いシャツ、青いズボン、スニーカー) – 経済状態と日常生活を反映。</li>
+        <li>壊れた通学かばん。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>人間関係</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>タコピー:</strong> 彼女を助け、ガジェットを提供し、情緒的な友となる宇宙人。</li>
+        <li><strong>チャッピー:</strong> 唯一の幸せの源である愛犬。</li>
+        <li><strong>母:</strong> 夜働き、家にほとんどおらず、しずかに無視されていると感じさせる。</li>
+        <li><strong>桐坂マリナ:</strong> 主ないじめっ子、衝突はマリナの間接的な死に至る。</li>
+        <li><strong>東直樹:</strong> 真相隠蔽に関与し、しずかが結果に対処するのを助ける。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>しずかという名前は、ドラえもんの源静香へのオマージュとして似せてある。</li>
+        <li>このキャラクターは、幼少期のトラウマと家庭崩壊の心理的影響を反映している。</li>
+        <li>タコピーとの相互作用は、空想的な物体を通して苦い現実に直面する子供たちというテーマを強調している。</li>
+        <li>ファンは、トラウマによる無意識の操作から、しずかを「魅惑的」または「陰険」と議論する。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote>"チャッピーがいてくれれば大丈夫ー他に何もいらないよ" — 久世しずか</blockquote>
+      <blockquote>"もう何も私を傷つけない。どんなに辛くても、どんなに大変でもー" — 久世しずか</blockquote>
+      <blockquote>"チャッピーが生きているなら、もしかしたら魔法は本当に存在するのかもしれない" — 久世しずか</blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 西宮硝子 ===== -->
+<section id="tab-Shōko" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>西宮硝子</strong>は<em>聲の形</em>のヒロイン。生まれつき重度の聴覚障害を持ち、子供の頃からコミュニケーションや他人との繋がりに苦労してきた。彼女の旅路は自己回復、生きる勇気、そして周囲の人々との関係を再構築することを描いている。</p>
+      <ul>
+        <li><strong>ステータス:</strong> 生存</li>
+        <li><strong>出身:</strong> 岐阜県</li>
+        <li><strong>種族:</strong> 人間</li>
+        <li><strong>年齢:</strong> 12歳 (初登場) • 17–18歳 (高校) • 20歳 (漫画終盤)</li>
+        <li><strong>性別:</strong> 女性</li>
+        <li><strong>髪の色:</strong> ダストローズ (くすんだピンク)、耳をよく隠す</li>
+        <li><strong>瞳の色:</strong> 茶色</li>
+        <li><strong>別名:</strong> "しょうちゃん", "硝子ちゃん", "西宮さん"</li>
+        <li><strong>家族:</strong> 八重子 (母)、結弦 (妹)、父 (別居)、伊藤硝子 (祖母・故人)、父方の祖父母</li>
+        <li><strong>所属:</strong> 水門小学校 (以前)、第二小学校 (以前)、手話センター、<em>サロン ストレイキャット</em> (研修生/理容師)</li>
+        <li><strong>初登場:</strong> 漫画01話 • 映画 (京都アニメーション, 2016年)</li>
+        <li><strong>声優:</strong> 日本語: 早見沙織 • 英語: レキシー・マーマン＝コーデン</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>外見</h2><span>+</span></div>
+    <div class="body">
+      <p>ストレートのくすんだピンク色の髪と、優しい印象を与える大きな茶色の瞳が特徴。子供の頃はボブヘア、10代では胸まで伸びたロングヘア。補聴器の事故による傷跡が右耳朶に残り、右耳の聴力は完全に失われ、左耳は補聴器を使用。制服は濃紺のブレザー、白いブラウスに青いリボン、ベージュのベスト、青白チェックのスカート、茶色のシューズ。私服では白/青のトップス、軽いジャケット、カジュアルなドレス、レギンス、デニムなどを着用。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>性格</h2><span>+</span></div>
+    <div class="body">
+      <p>幼い頃から他人と繋がりたいという思いを、筆談ノートや手話で表現してきた。疎外された経験から自己を責めがちで、逃げ隠れし、笑顔で傷を覆い隠す傾向がある。その裏には、非常に愛情深く、寛大で、忍耐強く、共感力のある性質があり、たとえ苦くとも正直さを高く評価し、他人の必要を喜んで助ける。石田将也と再び友人になるにつれ、怒り、悲しみ、幸福などの感情を表現する勇気を持ち、過去と和解し、自尊心を育んでいく。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>経歴 / タイムライン</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>1996年6月7日:</strong> 誕生 (双子座)。</li>
+        <li><strong>小6:</strong> 水門小学校の竹内クラスに転校；いじめ（特に将也から）を受ける。筆談ノートを捨てられる；最終的に転校。</li>
+        <li><strong>〜5年後:</strong> 手話センターで将也と再会；筆談ノートを返却し、日本手話（JSL）を学んでいた。友人関係を築き始め、古い友人たちとの関係を再構築する。</li>
+        <li><strong>花火大会事件:</strong> 硝子のどん底が将也の救助活動を引き起こし、将也は昏睡状態に；回復後、二人は互いに許し合い、「生きる」ことを約束する。</li>
+        <li><strong>高校卒業 → 東京:</strong> 美容師の夢を追い、<em>サロン ストレイキャット</em>で研修/働く；家族や友人との関係を維持する。</li>
+        <li><strong>エピローグ:</strong> 東京での勉強/仕事を終え、故郷に戻る；将也との関係は曖昧だが温かいものとして描かれる。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>日本手話 (JSL) & 非言語コミュニケーション:</strong> ジェスチャー、読唇術、筆記に依存。</li>
+        <li><strong>共感力 & 精神的回復力:</strong> 許す能力、情緒的に「聞く」能力、他人を落ち着かせる能力。</li>
+        <li><strong>理容技術:</strong> 美容師として（カット、基本的なスタイリング、接客）学び/働く。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>魔法 / 能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>読唇術:</strong> 日常の速い会話中の読唇術。</li>
+        <li><strong>視覚的象徴主義 & 花言葉:</strong> 感情表現としての（花、物、瞬間の）視覚的意味に敏感。</li>
+        <li><strong>生きるための強靭さ:</strong> 個人の「奇跡」—自分自身を受け入れ、生き続ける勇気。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>装備</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>補聴器</strong> (左耳で作動；右耳は機能しない)。</li>
+        <li><strong>筆談ノート</strong> (小学校以来、会話を書くために使用)。</li>
+        <li><strong>理容用具</strong> (はさみ、くし、ヘアドライヤー) サロン勤務時。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>人間関係</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>石田将也:</strong> 親友であり、どん底で彼女を助けた人物；後悔、謝罪の勇気、相互支援へと成長する二人の関係—恋愛関係は曖昧なまま。</li>
+        <li><strong>西宮結弦:</strong> 過保護な妹；守り方でよく衝突するが、互いを非常に気にかけている。</li>
+        <li><strong>西宮八重子:</strong> 「強くする」ために厳しい母；祖母伊藤の死と結弦の成長後、関係は和らぐ。</li>
+        <li><strong>佐原みよこ:</strong> 小学校時代の唯一の友達で手話を学んだ；高校で再び親しくなる。</li>
+        <li><strong>植野直花:</strong> 小学校以来の摩擦のある関係；大事件後、次第に改善し、「正直な」友情へ向かう。</li>
+        <li><strong>永束友宏 & 真柴智:</strong> 映画グループの友人；硝子がプロジェクトを続け、心を開くのを助ける。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>名前の語源:</strong> 硝 (しょう, "硝石") + 子 (こ, "子")；「硝子」は「ガラス」とも読める。「西宮」= 西 ("西") + 宮 ("宮/寺")。</li>
+        <li>硝子の誕生日は6月7日；将也の誕生日は6月6日 (日本では、6月6日は「補聴器の日」)。</li>
+        <li>英語版声優のレキシー・マーマン＝コーデンも聴覚障害者。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote>"ごめん。" — 西宮硝子</blockquote>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>出典</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>聲の形 Wiki – 西宮硝子プロフィール (Fandom)。</li>
+        <li><em>聲の形</em> (漫画) – キャラクター概要 & エピローグ。</li>
+        <li><em>聲の形</em> (映画) – プロット概要 & 象徴性 (京都アニメーション)。</li>
+        <li>京都アニメーション – 作品一覧 (スタジオ & 映画)。</li>
+      </ul>
+      <p><em>注記:</em> 年齢、学校、人間関係、サロンの仕事の詳細は上記の出典（漫画＋wiki＋映画）から要約。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ドロカ ===== -->
+<section id="tab-Doroka" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>ドロカ</strong>は<em>はめつのおうこく</em>の準主人公。人間と魔女の平和を求めて戦う、心優しい魔女であり、アドニスの旅の仲間。</p>
+      <ul>
+        <li><strong>ステータス:</strong> 生存</li>
+        <li><strong>出身:</strong> — (レディア王国/帝国の捕虜収容所で捕らえられた)</li>
+        <li><strong>種族:</strong> 魔女 (Witch)</li>
+        <li><strong>年齢:</strong> 17歳 (3月18日生まれ)</li>
+        <li><strong>性別:</strong> 女性</li>
+        <li><strong>髪の色:</strong> ピンク、ロング</li>
+        <li><strong>瞳の色:</strong> 当初は青；現在は虹彩異色症 (左青、右赤—アドニスからの提供)</li>
+        <li><strong>別名:</strong> —</li>
+        <li><strong>家族:</strong> — (親密な関係: アドニス)</li>
+        <li><strong>所属:</strong> アドニス (同盟者/信頼する者)</li>
+        <li><strong>初登場:</strong> 漫画1話；アニメ1話</li>
+        <li><strong>声優:</strong> 日本語: 和氣あず未 / 英語: アレクシス・ティプトン</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>外見</h2><span>+</span></div>
+    <div class="body">
+      <p>長いピンク色の髪とスレンダーな体格の美しい若い魔女として描かれる。緊迫した状況でも明るい笑顔を見せる。白兎（シロウサギ）との戦いの後、眼球を抉り取られる；その後、アドニスから提供された赤い片目により、虹彩異色症となる。よく魔女らしい服装をし、いくつかの場面では包帯/眼帯をつけている。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>性格</h2><span>+</span></div>
+    <div class="body">
+      <p>純粋で明るく、楽観的、そして少しそそっかしい。ドロカは人間と魔女の憎しみを終わらせなければならないと信じている。他人の負担にならないよう強くあり、アドニスへの率直な愛情を持っている。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>経歴 / タイムライン</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>物語前:</strong> 魔女のコミュニティで、彼女の「恋の魔法」は軽蔑され、他人に魔法を強制することをためらうトラウマとなった。</li>
+        <li><strong>第1話:</strong> レディア帝国の捕虜収容所で捕虜として登場；脱走中のアドニスと出会い、クロエ復活の使命とレディアへの反抗の旅で同盟者となる。</li>
+        <li><strong>第3話:</strong> アドニスの暴力の道への対抗役としての役割が強調される—彼女は希望と共感を促し続ける。</li>
+        <li><strong>第8話:</strong> 白兎（シロウサギ）と対峙；恋の魔法はサイボーグである彼女には効かない。アドニスと並んで戦い続ける（彼から剣を受け取る）。</li>
+        <li><strong>眼球事件:</strong> シロウサギがドロカの眼球を抉り取る；アドニスが後に片目を提供し、ドロカは右目が赤くなる。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>高い耐久力 & 決意:</strong> 最悪の状況でも他人を助けるために強くあり続ける。</li>
+        <li><strong>戦闘への適応力:</strong> 前線の戦士ではないが、戦うことを恐れない（例：シロウサギとの戦いでアドニスから剣を受け取る）。</li>
+        <li><strong>カリスマ性 & 説得力:</strong> 平和的な解決策を探し、状況を落ち着かせ、対話を通じてアドニスの選択に影響を与える能力。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>魔法 / 能力</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>恋の魔法 (Love Magic):</strong> 男性を恋愛/縛られた状態にし、命令に従わせることができる；敵の動きを阻害できる。</li>
+        <li><strong>強化効果 (buff):</strong> 縛られた対象は、身体能力、魔力、敏捷性の向上を受けられる。</li>
+        <li><strong>制限:</strong> 男性に有効；女性には効果がなく、特定の非人間/サイボーグ实体には効果がない場合がある。</li>
+        <li><strong>使用倫理:</strong> トラウマと信念により、ドロカはこの魔法で他人の感情を強制することを非常に嫌う。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>装備</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>剣:</strong> シロウサギ/ハミングバードとの対峙時にアドニスから渡される。</li>
+        <li><strong>包帯/眼帯:</strong> 眼球事件後に着用。</li>
+        <li><strong>魔女の服装:</strong> 若い魔女らしい典型的な服装（様々なドレス/ローブ）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>人間関係</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>アドニス:</strong> 親密な同盟者であり、両想いの恋愛感情；ドロカはアドニスの道徳的羅針盤となる。</li>
+        <li><strong>クロエ:</strong> 尊敬されている；ドロカの初期の使命はアドニスに関するクロエの記憶に関連する。</li>
+        <li><strong>白兎 (シロウサギ):</strong> ドロカの眼球喪失の原因となった敵。</li>
+        <li><strong>魔女コミュニティ:</strong> 恋の魔法の性質のため、一部から軽蔑されている。</li>
+        <li><strong>パンチ & 仲間たち:</strong> 魔女寄りの人間の同盟者。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>ドロカの誕生日は3月18日；主要事件時は17歳。</li>
+        <li>声優: <em>日本語</em> 和氣あず未；<em>英語</em> アレクシス・ティプトン (Crunchyroll ダブ)。</li>
+        <li>瞳の色の変化 (虹彩異色症) はシロウサギとの戦い後—右目の赤はアドニスからの提供。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote><em>(ドロカのテーマの言い換え)</em> "人間と魔女が憎しみ合うのを終わらせたい。" — ドロカ</blockquote>
+      <p><small>注記: この短い引用は、公式の描写と一致する一貫したテーマの言い換えとして書かれています；公式のエピソード/巻からの特定の対話の引用があれば、置き換えてください。</small></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>出典</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li>はめつのおうこく — ドロカキャラクターページ (プロフィール、年齢、誕生日、ステータス、能力、眼球事件、初登場)。</li>
+        <li>Wikipedia: はめつのおうこく (シリーズ概要 & ドロカの役割概要；エピソード context)。</li>
+        <li>Crunchyroll News — 英語キャスト発表 (ドロカ: アレクシス・ティプトン)。</li>
+        <li>AniList — キャラクター & 声優一覧 (ドロカ: 和氣あず未)。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ミリティア ===== -->
+<section id="tab-militia" class="wiki-tabpanel">
+  <div class="section"><div class="head"><h2>プロフィール</h2><span>+</span></div><div class="body">
+    <p><strong>ミリティア</strong>、<em>魔王学院の不適合者</em>における創造の女神。世界「転生世界ミリティア」の創造主。</p>
+    <ul>
+      <li><strong>ステータス:</strong> 転生 / 活動中</li>
+      <li><strong>出身:</strong> 神々の天蓋 (Firmament of the Gods)</li>
+      <li><strong>種族:</strong> 女神 / 創造の神 (God of Creation)</li>
+      <li><strong>年齢:</strong> 約7億歳</li>
+      <li><strong>性別:</strong> 女性</li>
+      <li><strong>髪の色:</strong> 白</li>
+      <li><strong>瞳の色:</strong> 青</li>
+      <li><strong>別名:</strong> 創造の女神、世界の創造主</li>
+      <li><strong>家族:</strong> エレネシア (母)、アベルニュ (妹)</li>
+      <li><strong>転生:</strong> ミーシャ・ネクロンとして</li>
+      <li><strong>所属:</strong> 選定神々 / 神々の天蓋</li>
+      <li><strong>初登場:</strong> 小説1巻 / アニメ2話</li>
+      <li><strong>声優:</strong> 日本語: 悠木碧 — 英語: アナイリス・キニョネス</li>
+    </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>外見</h2><span>+</span></div><div class="body">
+    <p>長い白髪と明るい青い瞳の優雅な女性。神聖で威厳のあるオーラを放つ白い儀式用の衣装を着ている。</p>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>性格</h2><span>+</span></div><div class="body">
+    <p>優しく、慈愛に満ち、世界の苦しみを気にかける。ほとんどの神々とは異なり、共感を持ち、紛争に対する平和的な解決策を探したいと考えている。</p>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>経歴 / タイムライン</h2><span>+</span></div><div class="body">
+    <p>
+      • エレネシアの後継者として生まれ、新たな世界を創造。<br>
+      • 紛争に満ちた世界を観察し、より安定した均衡のためにエンネソーネを創造。<br>
+      • アノスと出会う；大戦を終わらせるためベノ・イエヴンを創造するのを助ける。「2000年後に会おう」というメッセージをデルゾゲイドに残す。<br>
+      • 選定試験で均衡の神を封じることに失敗（裏切りにより）。<br>
+      • 死亡し、その後エヴェラスタンゼッタ、シリカへと変容；ミーシャ・ネクロンとして転生。<br>
+      • 自身の秩序に違反したため、ベノ・イエヴンを貫通できない。<br>
+      • 泡世界の時間的影響：創造世界7億年 vs 銀海1万4千年。
+    </p>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>能力</h2><span>+</span></div><div class="body">
+    <ul>
+      <li>膨大な魔力 (事実上無限の魔力貯蔵)。</li>
+      <li>概念的存在 (世界の秩序を保持)。</li>
+      <li>物質と概念の創造 & 再構築。</li>
+      <li>宇宙レベルでの誕生と死の循環の制御。</li>
+    </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>魔法 / 能力</h2><span>+</span></div><div class="body">
+    <ul>
+      <li><strong>アルティエルトノア – 創造の月 (Moon of Creation):</strong> 創造の主要秩序装置、生命と魔法の基盤。</li>
+      <li><strong>月の雪のしずく (Lunar Snowdrops):</strong> 三日月形の雪片—凍結、再創造、抗魔法貫通、エネルギー吸収、転移。</li>
+      <li><strong>根源の月食 (Lunar Eclipse of Origin):</strong> 生涯に二度だけ使える制限技術—世界の始まり & 新たな女神の創造。</li>
+      <li><strong>根源の神眼 (Divine Eyes of Origin)</strong></li>
+    </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>装備 / 神器</h2><span>+</span></div><div class="body">
+    <ul>
+      <li>アルティエルトノア (創造の月)</li>
+      <li>封じられ転生の結果であるシリカ、エリアル、エヴェラスタンゼッタ</li>
+      </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>トリビア</h2><span>+</span></div><div class="body">
+    <ul>
+      <li>アノスは彼女を「世界を最も愛した人」と呼ぶ。</li>
+      <li>ほとんど全ての神々は、人間を無視しても秩序を優先する—ミリティアは異なる。</li>
+      <li>世界の創造主であるため、その力はアノスの創造能力を超える。</li>
+      <li>秩序に違反する前は、ベノ・イエヴンを貫通できる唯一の神。</li>
+      <li>世界創造後の2000年間の紛争を見越して調整されていた。</li>
+      <li>秩序への恨み：エンネソーネ創造後、彼女の身体は神々の領域に戻れなくなった。</li>
+      <li>彼女の創造した世界は7億年以上—銀海との対比。</li>
+    </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>名言</h2><span>+</span></div><div class="body">
+    <blockquote>"いつか、平和が訪れたら、覚えていて。私はここで戦っていた。" — ミリティア</blockquote>
+    <blockquote>"優しく世界を変えるために。" — ミリティア</blockquote>
+    <p style="font-size:.9em;margin-top:.4em;"><em>(小説のデルゾゲイドの壁に触れる時の対話から翻訳。)</em></p>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>ファンインサイト</h2><span>+</span></div><div class="body">
+    <ul>
+      <li>ミリティアは、苦しみに満ちた世界に対する愛、慈愛、希望の象徴と見なされている。</li>
+      <li>特定の解釈では、ミーシャ/ミリティアは秩序の全くない世界—世界秩序のリセット—を創造したかった。</li>
+    </ul>
+  </div></div>
+
+  <div class="section"><div class="head"><h2>出典</h2><span>+</span></div><div class="body">
+    <ul>
+      <li>魔王学院 Wiki – ミリティア & 転生世界ミリティア ページ</li>
+      <li>エレネシア (ミリティアの母) – 魔王学院 Wiki</li>
+      <li>泡世界 & 時間の説明 – All Fiction Battles Wiki</li>
+      <li>対話と小説の引用 – mtlreader excerpts</li>
+      <li>コミュニティの洞察 – Reddit</li>
+      <li>Wikipedia (ES) – 性格説明</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== ギリエラム・ナヴィエム (涅槃七歩征服) ===== -->
+<section id="tab-gilieriam" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>ギリエラム・ナヴィエム (涅槃七歩征服)</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>ギリエラム・ナヴィエム</strong> (涅槃七歩征服) は、<i>魔王学院の不適合者</i>において<b>アノス・ヴォルディゴード</b>が持つ<b>最強の破滅呪文</b>の一つ。
+      この魔法は<b>七歩</b>からなり、それぞれの歩みでアノスの魔力を指数関数的に増大させ、七歩目では全世界を破壊し得る。</p>
+
+      <h3>▸ 起源</h3>
+      <ul>
+        <li><b>創造者:</b> アノス・ヴォルディゴード、痕跡の神レヴァルシュネドから<i>エギル・グローネ・アングドロア</i>を受け取った後。</li>
+        <li><b>カテゴリー:</b> <i>根源魔法 (Origin Magic)</i> — 過去の強力な存在から力を借りる種類の魔法。</li>
+        <li><b>初登場の背景:</b> 痕跡の神々との戦い (Land of Traces) で初めて登場。</li>
+      </ul>
+
+      <h3>▸ 破滅の七歩</h3>
+      <ol>
+        <li><b>第一步:</b> 第一の凝縮された魔法を解放し、世界に大きな震動を引き起こす。</li>
+        <li><b>第二步:</b> 力が急激に増大；その効果は弱い存在の存在を消し去るほど。</li>
+        <li><b>第三步:</b> 自然法則の歪みが感じられ始める；天体も破壊され得る。</li>
+        <li><b>第四步:</b> 攻撃は植物、土地、さらには生命エネルギーの記録さえも消去できる。</li>
+        <li><b>第五步:</b> 破壊力が劇的に急上昇し、基本的な魔法さえも神殺しの武器となる。</li>
+        <li><b>第六步:</b> ほとんど全ての標的の存在が跡形もなく消滅する。</li>
+        <li><b>第七步 (殲滅):</b> 完全に解放されれば、数千から数百万の世界を破壊する—完全なる殲滅。</li>
+      </ol>
+
+      <h3>▸ 破壊的影響</h3>
+      <ul>
+        <li>各歩みは世界にますます強力な震動を生み出し、アノスの魔法力の上昇を示す。</li>
+        <li>歩み出す前でさえ、そのオーラは神の遺産を灰に還元するのに十分。</li>
+        <li>その効果は宇宙の法則に縛られず；標的の過去と未来を歪める能力がある。</li>
+      </ul>
+
+      <h3>▸ 力の制御</h3>
+      <p>涅槃七歩は力の増大だけでなく、アノスの<b>制御</b>手段としても機能する。
+      アノス自身、自身の<i>破滅の根源 (Destruction Source)</i>を制御するのが難しいと認めている。これらの歩みにより、より構造化された方法で巨大な力を発揮できるが、各歩みは依然として危険である。</p>
+
+      <h3>▸ 使用例</h3>
+      <ul>
+        <li>ある戦闘で、アノスは第五步までしか使用せず、効果が破壊的すぎるため最初から繰り返した。</li>
+        <li>歯車の神エキスとの戦いでは、ギリエラム・ナヴィエムの歩みが基本魔法（フレス、クルスト、ギジェル、シニアル、ディー、グレガ）を強化し、<i>運命の歯車 (Gear of Fate)</i>を破壊するのに十分な力になった。</li>
+      </ul>
+
+      <h3>▸ 概要</h3>
+      <p>言い換えれば、<i>ギリエラム・ナヴィエム</i>はアノスの最終兵器であり、彼の強さを示すだけでなく、
+      暴虐の魔王でさえ、すべてを同時に破壊することなく破壊的な力を発揮するための<b>制御機構</b>を必要とすることを示している。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="head"><h2>結びの質問</h2><span>+</span></div>
+    <div class="body">
+      <p><b>なぜアノスはミリティア世界で完全な7歩を解放しないのか？</b></p>
+      <p>ミリティア世界は、真の破滅の概念に耐えるには脆弱すぎる。アノスの体から漏れるエネルギーだけでも世界を揺るがすのに十分であり、
+      完全な涅槃七歩はなおさら。解放されれば、世界は完全に滅びる。</p>
+      <p>しかし、<i>銀海編 (Arc Silver Sea)</i>では、アノスはこの魔法をさらに使用し始め、アニメ化されればカオスで非常に叙事詩的な戦いの可能性を開くと予想される。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== エギル・グローネ・アングドロア ===== -->
+<section id="tab-EgilGroneAngdroa" class="wiki-tabpanel">
+  <div class="section">
+    <div class="head"><h2>魔法プロフィール</h2><span>+</span></div>
+    <div class="body">
+      <p><strong>エギル・グローネ・アングドロア</strong> (エギル・グローネ・アングドロア / "世界破滅魔法: エギル・グローネ・アングドロア") は、<em>魔王学院の不適合者</em>における最深クラス (deep‑class) の<em>根源魔法 (origin magic)</em>の一つ。この魔法は<em>根源 (source)</em>に直接植え付けられた破滅の炎を解放し、世界を消滅させ、存在の痕跡を消し去ることができる。現代では、アノス・ヴォルディゴードによって使用され完成された；古代の記録では、銀水聖海 (Silver Water Holy Sea) で初代魔王アムル・ヴィーヴィザーによって開発されたとされる。</p>
+      <ul>
+        <li><strong>カテゴリー:</strong> 根源 / 破滅 (世界破滅)</li>
+        <li><strong>開発者:</strong> アムル・ヴィーヴィザー (初期開発者、銀海)；痕跡の秩序 (Order of Traces) を通じてレヴァルシュネドによりアノスに複製/継承</li>
+        <li><strong>使用者:</strong> 銀海の魔王たち (使用者数は極めて少ない、&lt; 10人)；アノス・ヴォルディゴード；アムル・ヴィーヴィザー</li>
+        <li><strong>初登場:</strong> ライトノベル (LN、ジオルダル/選ばれし八者編)；アニメS2 Part 2 第24話</li>
+        <li><strong>効果タイプ:</strong> 攻撃 / 存在消去 (破壊的秩序)</li>
+      </ul>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>起源</h2><span>+</span></div>
+    <div class="body">
+      <p>銀水聖海の伝説では、<em>エギル・グローネ・アングドロア</em>は、初代魔王アムル・ヴィーヴィザーによって最初に開発された最深クラスの破滅魔法として記録されている。アノスの時代では、この魔法の痕跡 (<em>trace</em>) がレヴァルシュネド (痕跡の神) によって再構築され、契約者としてアノスの<em>根源</em>に植え付けられ、より安定した変種を活性化できるようになった。<em>選定試験 (Selection Trial)</em>と神々間の衝突では、この魔法はアザエルの痕跡の書 (kitab jejak Azael) によって呼び出し得る「最大の試練」として現れた。</p>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>機構 & 作用方法</h2><span>+</span></div>
+    <div class="body">
+      <p><em>エギル・グローネ・アングドロア</em>は<strong>根源魔法</strong>に分類される：痕跡 (trace) を通じて過去の存在の力を借りて集中させ、破滅の種を標的の<em>根源</em>に植え付ける。アノスはしばしば強化魔法<strong>ギリエラム・ナヴィエム</strong> (涅槃七歩征服) と組み合わせ、歩みごとにその力の閾値を上げる。</p>
+      <ol>
+        <li><strong>痕跡の開始:</strong> レヴァルシュネドとの契約を通じて魔法の痕跡にアクセス；根源魔法は過去の力を借りる。</li>
+        <li><strong>根源での凝縮:</strong> 破滅のエネルギーが使用者の魂の源（またはアザエル経由で標的）で凝縮され、<em>秩序 (order)</em>を消し去る炎を形成する。</li>
+        <li><strong>解放 / 植え付け:</strong> 破滅の炎が宇宙の奔流として解放されるか、標的の根源に直接植え付けられ、破滅が核から進行する。</li>
+        <li><strong>七歩の相乗効果 (任意):</strong> <em>ギリエラム・ナヴィエム</em>の活性化は全てのパラメータを各歩みで上げ、破壊効果を深化させる。</li>
+      </ol><h3>超完全版 — 涅槃七歩 (ギリエラム・ナヴィエム)</h3>
+  <p><em>ギリエラム・ナヴィエム</em>は根源で凝縮された破滅魔法を解放し、各歩みでの力を上げる；第一步前でさえ、<em>反動 (backlash)</em>は神の遺産を溶解させ得る。宇宙的効果の歩みごとの概要：</p>
+  <ol>
+    <li><strong>第一步:</strong> 破滅のオーラの爆発；神の遺産は溶解/灰化しやすい（例：Vertexfemblem）。</li>
+    <li><strong>第二步:</strong> 基本呪文 (グレガ/フレス等) が<em>神殺し (god‑slaying)</em>レベルまで押し上げられる。</li>
+    <li><strong>第三步:</strong> 局所的な<em>秩序</em>の歪み；運命の歯車と神の領域が割れ始める。</li>
+    <li><strong>第四步:</strong> 因果律の分離；物/概念の痕跡が侵食される。</li>
+    <li><strong>第五步:</strong> 領域 & 運命の歯車の崩壊；<em>運命の歯車 (gear of fate)</em>が破壊される。</li>
+    <li><strong>第六步:</strong> 創造の順序の反転；世界の部分は、消去された創造の<em>痕跡</em>に従って消滅する。</li>
+    <li><strong>第七步:</strong> <em>過剰殺傷 (Overkill)</em>—数千倍もの世界を破壊するのに十分な出力（抑止力として使用）。</li>
+  </ol>
+
+  <p><em>注記:</em> いくつかの変種は、世界の限界を超え、实体と領域の影/痕跡を同時に断ち切るために、これらの歩みを深化 (deepening) させる。</p>
+</div>
+
+  </div>  <div class="section">
+    <div class="head"><h2>影響 & 力の規模</h2><span>+</span></div>
+    <div class="body">
+      <p><em>エギル・グローネ・アングドロア</em>と<em>ギリエラム・ナヴィエム</em>との相乗効果の破壊力は宇宙論的レベルに達する：</p>
+      <ul>
+        <li><strong>世界–複数世界規模:</strong> 完全な7歩の解放で数千の世界を破壊する可能性。</li>
+        <li><strong>法則の歪み:</strong> 痕跡を消去し、<em>痕跡の地 (land of traces)</em>における「創造の六日間」の順序を逆転させる。</li>
+        <li><strong>神性貫通:</strong> <em>運命の歯車</em>を粉砕し、神の領域（例：エキス）を侵食する。</li>
+      </ul>
+      <p>実際には、アノスは大きな痕跡を消し去り、痕跡領域を打ち倒すために六歩のみ歩んだことがある—一方、完全な7歩版は最終オプションとして温存された。</p>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>制御 & 弱点</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>制御困難 (根源魔法):</strong> 過去の存在の力を借りるため、安定性は複雑；最大出力には<em>秩序</em>の均衡が必要。</li>
+        <li><strong>根源/痕跡によるハイジャック:</strong> 特定の痕跡<em>秩序</em>（例：リーバルシェンド）を支配する側は、根源魔法の流れをハイジャックし、反射できる。</li>
+        <li><strong>特定の対抗策:</strong>
+          <ul>
+            <li><em>災厄の氷獄 (Frozen Prison of Calamity)</em> (イザーク) は、アングドロアからの致命的な損傷の可能性さえも凍結できる。</li>
+            <li><em>魔眼 (Magic Eyes)</em> ジニアは、アングドロアを含む非常に強力な呪文を「食らう」ことができ、敵を層状の闇に閉じ込める。</li>
+          </ul>
+        </li>
+        <li><strong>コスト &amp; リスク:</strong> 破滅の種を根源（反動による使用者または標的の両方）に植え付けるには絶対的な制御が必要；失敗は<em>根源の負荷 (source strain)</em>を引き起こす。</li>
+      </ul>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>使用例</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>ナフタ (未来の女神) との対峙:</strong> アノスは大きな対峙前に二度アングドロアを使用したと述べ；アニメ適応では、その根源性が一時的にハイジャックされた。</li>
+        <li><strong>エキス (歯車の神) 対:</strong> <em>ギリエラム・ナヴィエム</em>活性化の<em>反動</em>は、第一步前だけで<em>歯車剣 Vertexfemblem</em>を溶解させ；その後の歩みは<em>運命の歯車</em>を破壊した。</li>
+        <li><strong>6歩の実演:</strong> アノスは六歩歩み、<em>痕跡の地</em>における創造の順序を逆転させ、その痕跡に従って世界の部分を消去した。</li>
+      </ul>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>トリビア</h2><span>+</span></div>
+    <div class="body">
+      <ul>
+        <li><strong>名前の意味 / 語源:</strong> 公式の語源はない。カタカナ表記 エギル・グローネ・アングドロアは、ヨーロッパ風の名前を示唆；コミュニティはしばしば「Egil」（古代北欧名）、「Grone/Grōne」（ゲルマン語の音遊びの可能性）、「Angdroa」（「闇/怒り」のラテン/インド・ヨーロッパ語根との音声的類似性）に関連付けるが、これは<em>推測的</em>である。</li>
+        <li><strong>銀海との関連性:</strong> 銀水聖海由来の最深クラス魔法としてしばしば分類される；正当な使用者は極めて稀 (&lt; 10人)。</li>
+        <li><strong>「涅槃七歩」との同期:</strong> アングドロアは、<em>ギリエラム・ナヴィエム</em>の各歩みで解放される破壊的エネルギーの基盤となる。</li>
+      </ul>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>関連名言</h2><span>+</span></div>
+    <div class="body">
+      <blockquote>"歩みを重ねるごとに、創造そのものの痕跡は薄れていく。" — (<em>ギリエラム・ナヴィエム</em>についての叙述)</blockquote>
+    </div>
+  </div>  <div class="section">
+    <div class="head"><h2>結びの質問</h2><span>+</span></div>
+    <div class="body">
+      <p><b>質問:</b> なぜこの魔法はめったに使われない/使用が控えられるのか？</p>
+      <p><b>回答:</b> その性質が<em>根源的世界破滅</em>であり、不安定性と宇宙論的結果（秩序の逆転、痕跡の消去）のリスクがあるため。通常、最終的な均衡装置として、または他の全ての選択肢が失敗した時に神の領域を打ち破るためにのみ使用される。</p>
+    </div>
+  </div>
+</section>
+  </div>
+</main>
+
+<!-- Compact Social Bar -->
+<div class="social-mini">
+  <a href="https://facebook.com" target="_blank" class="social-mini-icon" title="Facebook">
+    <i class="fab fa-facebook-f"></i>
+  </a>
+  <a href="https://twitter.com" target="_blank" class="social-mini-icon" title="Twitter">
+    <i class="fab fa-twitter"></i>
+  </a>
+  <a href="https://instagram.com" target="_blank" class="social-mini-icon" title="Instagram">
+    <i class="fab fa-instagram"></i>
+  </a>
+  <a href="https://pinterest.com" target="_blank" class="social-mini-icon" title="Pinterest">
+    <i class="fab fa-pinterest-p"></i>
+  </a>
+  <a href="https://site1.com" target="_blank" class="social-mini-icon" title="Website 1">
+    <i class="fas fa-link"></i>
+  </a>
+  <a href="https://site2.com" target="_blank" class="social-mini-icon" title="Website 2">
+    <i class="fas fa-link"></i>
+  </a>
+</div>
+
+<script>
+/* ===== 二十四節気データ ===== */
+const sekki = [
+  {name:'小寒',  m:1, d:5, kanji:'寒', color:'#a2d6f9'},
+  {name:'大寒',  m:1, d:20, kanji:'寒', color:'#a2d6f9'},
+  {name:'立春',  m:2, d:4, kanji:'春', color:'#ff91a4'},
+  {name:'雨水',  m:2, d:19, kanji:'春', color:'#ff91a4'},
+  {name:'啓蟄',  m:3, d:5, kanji:'春', color:'#ff91a4'},
+  {name:'春分',  m:3, d:20, kanji:'春', color:'#ff91a4'},
+  {name:'清明',  m:4, d:5, kanji:'春', color:'#ff91a4'},
+  {name:'穀雨',  m:4, d:20, kanji:'春', color:'#ff91a4'},
+  {name:'立夏',  m:5, d:5, kanji:'夏', color:'#ff5f5f'},
+  {name:'小満',  m:5, d:21, kanji:'夏', color:'#ff5f5f'},
+  {name:'芒種',  m:6, d:5, kanji:'夏', color:'#ff5f5f'},
+  {name:'夏至',  m:6, d:21, kanji:'夏', color:'#ff5f5f'},
+  {name:'小暑',  m:7, d:7, kanji:'夏', color:'#ff5f5f'},
+  {name:'大暑',  m:7, d:23, kanji:'夏', color:'#ff5f5f'},
+  {name:'立秋',  m:8, d:7, kanji:'秋', color:'#ffa45c'},
+  {name:'処暑',  m:8, d:23, kanji:'秋', color:'#ffa45c'},
+  {name:'白露',  m:9, d:8, kanji:'秋', color:'#ffa45c'},
+  {name:'秋分',  m:9, d:23, kanji:'秋', color:'#ffa45c'},
+  {name:'寒露',  m:10,d:8, kanji:'秋', color:'#ffa45c'},
+  {name:'霜降',  m:10,d:23, kanji:'秋', color:'#ffa45c'},
+  {name:'立冬',  m:11,d:7, kanji:'冬', color:'#29b6f6'},
+  {name:'小雪',  m:11,d:22, kanji:'冬', color:'#29b6f6'},
+  {name:'大雪',  m:12,d:7, kanji:'冬', color:'#29b6f6'},
+  {name:'冬至',  m:12,d:22, kanji:'冬', color:'#29b6f6'}
+];
+
+/* 現在の節気取得 */
+function getCurrentSekki() {
+  const now = new Date();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  return sekki.find((s,i,arr)=>{
+    const next = arr[(i+1)%24];
+    return (m === s.m && d >= s.d) || (m === next.m && d < next.d);
+  });
+}
+
+/* 初期化 */
+(()=>{
+  const s = getCurrentSekki();
+  const indicator = document.getElementById('sekkiIndicator');
+  if(indicator){
+    indicator.textContent = s.kanji;
+    indicator.title = s.name;
+    indicator.style.color = s.color;
+    document.body.style.background = `linear-gradient(to bottom, ${s.color}33, #000)`;
+  }
+})();
+
+/* ===== タブ切り替え ===== */
+const tabs = document.querySelectorAll('.wiki-tab');
+const panels = {
+  maou: document.getElementById('tab-maou'),
+  roshidere: document.getElementById('tab-roshidere'),
+  lightnovel: document.getElementById('tab-lightnovel'),
+  misha: document.getElementById('tab-misha'),
+  sasha: document.getElementById('tab-sasha'),
+  shizuka: document.getElementById('tab-shizuka'),
+  Shōko: document.getElementById('tab-Shōko'),
+  Doroka: document.getElementById('tab-Doroka'),
+  militia: document.getElementById('tab-militia'),
+  gilieriam: document.getElementById('tab-gilieriam'),
+  EgilGroneAngdroa: document.getElementById('tab-EgilGroneAngdroa')
+};
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    Object.values(panels).forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    panels[tab.dataset.tab].classList.add('active');
+  });
+});
+
+/* ===== 折りたたみセクション ===== */
+document.querySelectorAll('.section .head').forEach(head => {
+  head.addEventListener('click', () => {
+    const body = head.nextElementSibling;
+    const sign = head.querySelector('span');
+    const isOpen = body.classList.contains('open');
+    head.closest('.wiki-tabpanel').querySelectorAll('.section .body').forEach(b => {
+      b.classList.remove('open');
+      b.previousElementSibling.querySelector('span').textContent = '+';
+    });
+    if (!isOpen) {
+      body.classList.add('open');
+      sign.textContent = '−';
+    } else {
+      body.classList.remove('open');
+      sign.textContent = '+';
+    }
+  });
+});
+
+/* ===== 背景スライドショー（日本情景） ===== */
+const jpImages = [
+  'https://images.pexels.com/photos/5779236/pexels-photo-5779236.jpeg',
+  'https://images.pexels.com/photos/2451038/pexels-photo-2451038.jpeg', // 花火
+  'https://images.pexels.com/photos/3408353/pexels-photo-3408353.jpeg', // 紅葉
+  'https://images.unsplash.com/photo-1546529249-8de036dd3c9a?w=1200&q=80', // 雪
+  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80', // 桜2
+  'https://images.pexels.com/photos/2451038/pexels-photo-2451038.jpeg', // 花火2
+  'https://images.pexels.com/photos/2451043/pexels-photo-2451043.jpeg', // 紅葉2
+  'https://images.pexels.com/photos/5779236/pexels-photo-5779236.jpeg', // 雪2
+  'https://images.unsplash.com/photo-1546529249-8de036dd3c9a?w=1200&q=80', // 桜3
+  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80', // 花火3
+  'https://images.pexels.com/photos/5779236/pexels-photo-5779236.jpeg', // 紅葉3
+  'https://images.pexels.com/photos/2451038/pexels-photo-2451038.jpeg', // 雪3
+  'https://images.pexels.com/photos/30944530/pexels-photo-30944530.jpeg', // 桜4
+  'https://images.pexels.com/photos/29518213/pexels-photo-29518213.jpeg', // 花火4
+  'https://images.pexels.com/photos/6602634/pexels-photo-6602634.jpeg', // 紅葉4
+  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80', // 雪4
+];
+
+const slideshowContainer = document.getElementById('bgSlideshow');
+let currentIndex = 0;
+jpImages.forEach((src, i) => {
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = `日本情景${i+1}`;
+  if (i === 0) img.classList.add('active');
+  slideshowContainer.appendChild(img);
+});
+
+function changeBackground() {
+  const images = slideshowContainer.querySelectorAll('img');
+  images[currentIndex].classList.remove('active');
+  currentIndex = (currentIndex + 1) % images.length;
+  images[currentIndex].classList.add('active');
+}
+setInterval(changeBackground, 5000);
+
+/* ===== ライトノベルデータ ===== */
+const maouData = [
+  {
+    volume: 1,
+    title: "魔王学院の不適合者",
+    release: "2018年3月10日",
+    chapters: [
+      {
+        name: "第一章：デルゾゲートへの招待状",
+        content: "始祖の魔王アノス・ヴォルディゴードが2000年後に転生し、魔王学院に入学するまでの物語。",
+        tanggal_rilis: { tahun: 2017, bulan: 4, tanggal: 2 },
+        tanggal_revisi: { tahun: 2017, bulan: 6, tanggal: 15 },
+        tanggal_parafrasa: { tahun: 2025, bulan: 8, tanggal: 22 },
+        sumber: "小説家になろう - 秋の新作"
+      },
+      {
+        name: "第二章：適合試験",
+        content: "学院での適合試験で不適合者と烙印を押されるアノス。",
+        tanggal_rilis: { tahun: 2018, bulan: 3, tanggal: 10 },
+        tanggal_revisi: { tahun: 2020, bulan: 7, tanggal: 16 },
+        tanggal_parafrasa: { tahun: 2025, bulan: 8, tanggal: 22 },
+        sumber: "KADOKAWA - 電撃文庫"
+      }
+    ]
+  }
+];
+
+const roshidereData = [
+  {
+    volume: 1,
+    title: "時々ロシア語で愛を叫ぶアーリャちゃん",
+    release: "2021年2月25日",
+    chapters: [
+      {
+        name: "第一章：有名なアーリャさん",
+        content: "クラスで一番人気のアーリャが、実はロシア語で愛の告白をしている話。",
+        tanggal_rilis: { tahun: 2021, bulan: 2, tanggal: 25 },
+        tanggal_revisi: { tahun: 2022, bulan: 4, tanggal: 12 },
+        tanggal_parafrasa: { tahun: 2025, bulan: 8, tanggal: 22 },
+        sumber: "小説家になろう - 春の新作"
+      }
+    ]
+  }
+];
+
+/* ===== ライトノベルレンダリング ===== */
+function formatDate(d) {
+  return `${d.tahun}-${String(d.bulan).padStart(2, '0')}-${String(d.tanggal).padStart(2, '0')}`;
+}
+
+function renderLightNovel(containerId, data) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  data.forEach(vol => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ln-volume';
+    
+    const header = document.createElement('div');
+    header.className = 'ln-volume-header';
+    header.innerHTML = `<span>第${vol.volume}巻：${vol.title}（${vol.release}）</span><span>+</span>`;
+    
+    const body = document.createElement('div');
+    body.className = 'ln-volume-body';
+    const list = document.createElement('ul');
+    list.className = 'ln-chapter-list';
+    
+    vol.chapters.forEach(ch => {
+      const li = document.createElement('li');
+      li.innerHTML = `${ch.name}
+        <span class="date-badge">公開：${formatDate(ch.tanggal_rilis)}</span>
+        <span class="source-badge">${ch.sumber}</span>`;
+      
+      const content = document.createElement('div');
+      content.className = 'chapter-content';
+      content.textContent = ch.content;
+      li.appendChild(content);
+      
+      li.addEventListener('click', () => {
+        const open = content.style.display === 'block';
+        document.querySelectorAll('.chapter-content').forEach(c => c.style.display = 'none');
+        if (!open) content.style.display = 'block';
+      });
+      
+      list.appendChild(li);
+    });
+    
+    body.appendChild(list);
+    wrap.appendChild(header);
+    wrap.appendChild(body);
+    container.appendChild(wrap);
+    
+    header.addEventListener('click', () => {
+      const open = body.classList.contains('open');
+      body.classList.toggle('open');
+      header.querySelector('span:last-child').textContent = open ? '+' : '−';
+    });
+  });
+}
+
+renderLightNovel('maou-ln', maouData);
+renderLightNovel('roshidere-ln', roshidereData);
+
+/* ===== 検索機能 ===== */
+const searchInput = document.getElementById('searchInput');
+const searchToggle = document.getElementById('searchToggle');
+const searchResults = document.getElementById('searchResults');
+const searchResultsContent = document.getElementById('searchResultsContent');
+const searchOverlay = document.getElementById('searchOverlay');
+const closeSearchResults = document.getElementById('closeSearchResults');
+
+let searchResultsList = [];
+let allSearchableText = [];
+
+function preloadSearchableText() {
+  const contentElements = document.querySelectorAll('.wiki-tabpanel .body, .ln-chapter-list li');
+  allSearchableText = Array.from(contentElements).map(el => ({
+    text: el.textContent.toLowerCase(),
+    element: el
+  }));
+}
+
+searchToggle.addEventListener('click', () => {
+  searchInput.classList.toggle('active');
+  if (searchInput.classList.contains('active')) searchInput.focus();
+});
+
+searchInput.addEventListener('keyup', (e) => {
+  if (e.key === 'Enter') {
+    performSearch(searchInput.value.trim());
+  }
+});
+
+closeSearchResults.addEventListener('click', () => {
+  searchResults.classList.remove('active');
+  searchOverlay.classList.remove('active');
+});
+
+function performSearch(query) {
+  if (!query) return;
+  
+  searchResultsList = [];
+  const searchTerms = query.toLowerCase().split(' ');
+  
+  allSearchableText.forEach(item => {
+    const text = item.text;
+    const matchesAllTerms = searchTerms.every(term => text.includes(term));
+    
+    if (matchesAllTerms) {
+      let source = '';
+      const tabPanel = item.element.closest('.wiki-tabpanel');
+      if (tabPanel) {
+        const tabName = Object.keys(panels).find(key => panels[key] === tabPanel);
+        source = document.querySelector(`.wiki-tab[data-tab="${tabName}"]`).textContent;
+      }
+      
+      searchResultsList.push({
+        element: item.element,
+        source: source
+      });
+    }
+  });
+  
+  searchResultsContent.innerHTML = searchResultsList.length 
+    ? searchResultsList.map((_,i) => `<div class="search-result-item"><h3>検索結果 ${i+1}</h3></div>`).join('')
+    : '<div class="search-no-results"><p>「' + query + '」に一致する情報は見つかりませんでした</p></div>';
+  
+  searchResults.classList.add('active');
+  searchOverlay.classList.add('active');
+}
+
+preloadSearchableText();
+</script>
+
+</body>
+</html>
